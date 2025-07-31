@@ -256,15 +256,15 @@ class Lite(LightningLite):
             if not args.debug:
                 final_dataloaders = [dl for dl in eval_dataloaders]
 
-                ds_name = "dynamic_replica"
-                final_dataloaders.append(
-                    (ds_name, get_eval_dataloader(args.dataset_root, ds_name))
-                )
+                # ds_name = "dynamic_replica"
+                # final_dataloaders.append(
+                #     (ds_name, get_eval_dataloader(args.dataset_root, ds_name))
+                # )
 
-                ds_name = "tapvid_robotap"
-                final_dataloaders.append(
-                    (ds_name, get_eval_dataloader(args.dataset_root, ds_name))
-                )
+                # ds_name = "tapvid_robotap"
+                # final_dataloaders.append(
+                #     (ds_name, get_eval_dataloader(args.dataset_root, ds_name))
+                # )
 
                 ds_name = "tapvid_kinetics_first"
                 final_dataloaders.append(
