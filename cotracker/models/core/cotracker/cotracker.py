@@ -416,50 +416,8 @@ class EfficientUpdateFormer(nn.Module):
         self.virual_tracks = nn.Parameter(
             torch.randn(1, num_virtual_tracks, 1, hidden_size)
         )
-        self.add_space_attn = add_space_attn
         self.linear_layer_for_vis_conf = linear_layer_for_vis_conf
         self.timesformer = TimeSformer()
-        self.time_blocks = nn.ModuleList(
-            [
-                AttnBlock(
-                    hidden_size,
-                    num_heads,
-                    mlp_ratio=mlp_ratio,
-                    attn_class=Attention,
-                )
-                for _ in range(time_depth)
-            ]
-        )
-
-        if add_space_attn:
-            self.space_virtual_blocks = nn.ModuleList(
-                [
-                    AttnBlock(
-                        hidden_size,
-                        num_heads,
-                        mlp_ratio=mlp_ratio,
-                        attn_class=Attention,
-                    )
-                    for _ in range(space_depth)
-                ]
-            )
-            self.space_point2virtual_blocks = nn.ModuleList(
-                [
-                    CrossAttnBlock(
-                        hidden_size, hidden_size, num_heads, mlp_ratio=mlp_ratio
-                    )
-                    for _ in range(space_depth)
-                ]
-            )
-            self.space_virtual2point_blocks = nn.ModuleList(
-                [
-                    CrossAttnBlock(
-                        hidden_size, hidden_size, num_heads, mlp_ratio=mlp_ratio
-                    )
-                    for _ in range(space_depth)
-                ]
-            )
-            assert len(self.time_blocks) >= len(self.space_virtual2point_blocks)
         self.initialize_weights()
 
     def initialize_weights(self):
