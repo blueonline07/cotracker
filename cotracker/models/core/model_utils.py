@@ -9,7 +9,7 @@ import random
 import torch
 import torch.nn.functional as F
 from typing import Optional, Tuple
-
+import inspect
 EPS = 1e-6
 
 
@@ -397,7 +397,11 @@ def bilinear_sampler(input, coords, align_corners=True, padding_mode="border"):
     Returns:
         Tensor: sampled points.
     """
-
+    stack = inspect.stack()
+    caller_frame = stack[1]
+    caller_name = caller_frame.function
+    # if caller_name == "get_correlation_feat":
+    #     print(coords.shape)
     sizes = input.shape[2:]
 
     assert len(sizes) in [2, 3]
@@ -405,7 +409,9 @@ def bilinear_sampler(input, coords, align_corners=True, padding_mode="border"):
     if len(sizes) == 3:
         # t x y -> x y t to match dimensions T H W in grid_sample
         coords = coords[..., [1, 2, 0]]
-
+    # if caller_name == "get_correlation_feat":
+    #     print(coords[0][0][0][0])
+    #     print(list(reversed(sizes)))
     if align_corners:
         coords = coords * torch.tensor(
             [2 / max(size - 1, 1) for size in reversed(sizes)], device=coords.device
@@ -416,6 +422,9 @@ def bilinear_sampler(input, coords, align_corners=True, padding_mode="border"):
         )
 
     coords -= 1
+    # if caller_name == "get_correlation_feat":
+    #     print(coords[0][0][0][0])
+    # print("-------------")
 
     return F.grid_sample(
         input, coords, align_corners=align_corners, padding_mode=padding_mode

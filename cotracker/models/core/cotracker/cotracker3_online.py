@@ -210,7 +210,6 @@ class CoTrackerThreeOnline(CoTrackerThreeBase):
             corr_embs = corr_embs.view(B, S, N, corr_embs.shape[-1])
 
             transformer_input = [vis, conf, corr_embs]
-
             rel_coords_forward = coords[:, :-1] - coords[:, 1:]
             rel_coords_backward = coords[:, 1:] - coords[:, :-1]
 
@@ -237,7 +236,7 @@ class CoTrackerThreeOnline(CoTrackerThreeBase):
                 max_deg=10,
             )  # batch, num_points, num_frames, 84
             transformer_input.append(rel_pos_emb_input)
-
+            
             x = (
                 torch.cat(transformer_input, dim=-1)
                 .permute(0, 2, 1, 3)

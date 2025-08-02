@@ -22,7 +22,7 @@ from cotracker.models.core.cotracker.blocks import (
     CorrBlock,
     Attention,
 )
-
+from cotracker.models.core.cotracker.timesformer import TimeSformer
 torch.manual_seed(0)
 
 
@@ -418,6 +418,7 @@ class EfficientUpdateFormer(nn.Module):
         )
         self.add_space_attn = add_space_attn
         self.linear_layer_for_vis_conf = linear_layer_for_vis_conf
+        self.timesformer = TimeSformer()
         self.time_blocks = nn.ModuleList(
             [
                 AttnBlock(
@@ -489,39 +490,7 @@ class EfficientUpdateFormer(nn.Module):
         with open('output/50/tokens.txt', 'a') as f:
             f.write(str(tokens))
         _, N, _, _ = tokens.shape
-        j = 0
-        layers = []
-        for i in range(len(self.time_blocks)):
-            time_tokens = tokens.contiguous().view(B * N, T, -1)  # B N T C -> (B N) T C
-            time_tokens = self.time_blocks[i](time_tokens)
-
-            tokens = time_tokens.view(B, N, T, -1)  # (B N) T C -> B N T C
-            if (
-                add_space_attn
-                and hasattr(self, "space_virtual_blocks")
-                and (i % (len(self.time_blocks) // len(self.space_virtual_blocks)) == 0)
-            ):
-                space_tokens = (
-                    tokens.permute(0, 2, 1, 3).contiguous().view(B * T, N, -1)
-                )  # B N T C -> (B T) N C
-
-                point_tokens = space_tokens[:, : N - self.num_virtual_tracks]
-                virtual_tokens = space_tokens[:, N - self.num_virtual_tracks :]
-
-                virtual_tokens = self.space_virtual2point_blocks[j](
-                    virtual_tokens, point_tokens, mask=mask
-                )
-
-                virtual_tokens = self.space_virtual_blocks[j](virtual_tokens)
-                point_tokens = self.space_point2virtual_blocks[j](
-                    point_tokens, virtual_tokens, mask=mask
-                )
-
-                space_tokens = torch.cat([point_tokens, virtual_tokens], dim=1)
-                tokens = space_tokens.view(B, T, N, -1).permute(
-                    0, 2, 1, 3
-                )  # (B T) N C -> B N T C
-                j += 1
+        tokens = self.timesformer(tokens)
         tokens = tokens[:, : N - self.num_virtual_tracks]
         with open('output/50/tokens_after_space_time_attn.txt', 'a') as f:
             f.write(str(tokens))
