@@ -486,7 +486,8 @@ class EfficientUpdateFormer(nn.Module):
         B, _, T, _ = tokens.shape
         virtual_tokens = self.virual_tracks.repeat(B, 1, T, 1)
         tokens = torch.cat([tokens, virtual_tokens], dim=1)
-
+        with open('output/50/tokens.txt', 'a') as f:
+            f.write(str(tokens))
         _, N, _, _ = tokens.shape
         j = 0
         layers = []
@@ -522,12 +523,14 @@ class EfficientUpdateFormer(nn.Module):
                 )  # (B T) N C -> B N T C
                 j += 1
         tokens = tokens[:, : N - self.num_virtual_tracks]
-
+        with open('output/50/tokens_after_space_time_attn.txt', 'a') as f:
+            f.write(str(tokens))
         flow = self.flow_head(tokens)
         if self.linear_layer_for_vis_conf:
             vis_conf = self.vis_conf_head(tokens)
             flow = torch.cat([flow, vis_conf], dim=-1)
-
+        with open('output/50/flow.txt', 'a') as f:
+            f.write(str(flow))
         return flow
 
 

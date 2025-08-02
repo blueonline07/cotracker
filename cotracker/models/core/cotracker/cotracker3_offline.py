@@ -40,7 +40,10 @@ class CoTrackerThreeOffline(CoTrackerThreeBase):
                 - all_coords_predictions (List[FloatTensor[B, S, N, 2]]):
                 - mask (BoolTensor[B, T, N]):
         """
-
+        with open(f"input/video.txt", 'w') as f:
+            f.write(str(video))
+        with open(f"input/queries.txt", 'w') as f:
+            f.write(str(queries))
         B, T, C, H, W = video.shape
         device = queries.device
         assert H % self.stride == 0 and W % self.stride == 0
@@ -100,7 +103,8 @@ class CoTrackerThreeOffline(CoTrackerThreeBase):
             B, -1, self.latent_dim, H // self.stride, W // self.stride
         )
         fmaps = fmaps.to(dtype)
-
+        with open("output/50/fmaps.txt", "w") as file:
+            file.write(str(fmaps))
         # We compute track features
         fmaps_pyramid = []
         track_feat_pyramid = []
@@ -156,9 +160,11 @@ class CoTrackerThreeOffline(CoTrackerThreeBase):
                 )
                 corr_emb = self.corr_mlp(corr_volume.reshape(B * T * N, r * r * r * r))
                 corr_embs.append(corr_emb)
+
             corr_embs = torch.cat(corr_embs, dim=-1)
             corr_embs = corr_embs.view(B, T, N, corr_embs.shape[-1])
-
+            with open(f"output/50/corr_embs_{it}.txt", 'w') as file:
+                file.write(str(corr_embs))
             transformer_input = [vis[..., None], confidence[..., None], corr_embs]
 
             rel_coords_forward = coords[:, :-1] - coords[:, 1:]
@@ -200,7 +206,8 @@ class CoTrackerThreeOffline(CoTrackerThreeBase):
                 x,
                 add_space_attn=add_space_attn,
             )
-
+            with open('output/50/delta.txt', 'w') as file:
+                file.write(str(delta))
             delta_coords = delta[..., :D_coords].permute(0, 2, 1, 3)
             delta_vis = delta[..., D_coords].permute(0, 2, 1)
             delta_confidence = delta[..., D_coords + 1].permute(0, 2, 1)
